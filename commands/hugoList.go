@@ -1,3 +1,4 @@
+// Package commands: implements 'hugo list' commands
 package commands
 
 import (
@@ -14,6 +15,7 @@ type Post struct {
 	Date  string
 }
 
+// ListHugoPosts implement 'hugo list all' and parse CSV output
 func ListHugoPosts() ([]Post, error) {
 	// Run Hugo command
 	cmd := exec.Command("hugo", "list", "all")
