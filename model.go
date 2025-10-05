@@ -1,6 +1,10 @@
 package main
 
 import (
+	"fmt"
+
+	"hugotui/commands"
+
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -46,6 +50,9 @@ type model struct {
 }
 
 func mainModel() (*model, error) {
+	posts, _ := commands.ListHugoPosts()
+	fmt.Println(posts)
+
 	items := []list.Item{
 		item{title: "Raspberry Pi’s", body: "I have ’em all over my house"},
 		item{title: "Nutella", body: "It's good on toast"},
