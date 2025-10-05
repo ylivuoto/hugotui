@@ -100,9 +100,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "tab":
 			// Switch focus between list and viewport
 			m.focus = (m.focus + 1) % 2
-		case "r":
-			// manual refresh: re-render selected (useful for debugging)
-			m.renderSelected()
+		case "n":
+			commands.CreateArticle()
 		default:
 			if m.focus == 0 {
 				var cmd tea.Cmd
