@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"hugotui/commands"
+	"hugotui/utils"
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -11,19 +12,6 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 )
-
-const content = `
-# Today’s Menu
-
-## Appetizers
-
-| Name        | Price | Notes                           |
-| ---         | ---   | ---                             |
-| Tsukemono   | $2    | Just an appetizer               |
-| Tomato Soup | $4    | Made with San Marzano tomatoes  |
-| Okonomiyaki | $4    | Takes a few minutes to make     |
-| Curry       | $3    | We can add squash if you’d like |
-`
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
@@ -34,8 +22,12 @@ type item struct {
 }
 
 // Title as is, join rest of info for desc
-func (i item) Title() string       { return i.title }
-func (i item) Description() string { return fmt.Sprintf("%s - %s", i.date, i.tags) }
+func (i item) Title() string { return i.title }
+
+// TODO: fix date format to show day before month
+func (i item) Description() string {
+	return fmt.Sprintf("%s - %s", utils.FormatHugoDate(i.date), utils.ParseTags(i.tags))
+}
 func (i item) FilterValue() string { return i.title }
 
 type model struct {
@@ -52,6 +44,7 @@ func mainModel() (*model, error) {
 	// Pick all posts via hugo cli
 	posts, _ := commands.ListHugoPosts()
 
+	// TODO: fix latest post tags to not to show earlirer posts tags
 	// Make bubbletea list items
 	items := make([]list.Item, len(posts))
 	for i, p := range posts {
