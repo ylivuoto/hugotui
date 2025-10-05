@@ -5,14 +5,19 @@ import (
 	"encoding/csv"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+
+	"hugotui/utils"
 )
 
 type Post struct {
-	Path  string
-	Slug  string
-	Title string
-	Date  string
+	Path    string
+	Slug    string
+	Title   string
+	Date    string
+	Content string
+	Tags    []string
 }
 
 // ListHugoPosts implement 'hugo list all' and parse CSV output
@@ -44,6 +49,11 @@ func ListHugoPosts() ([]Post, error) {
 		for i, v := range row {
 			switch headers[i] {
 			case "path":
+				// TODO: handle error
+				content, _ := utils.ReadFileAsString(filepath.Join(cmd.Dir, v))
+				matter, body := utils.ParseFrontMatter(content)
+				p.Tags = matter.Tags
+				p.Content = body
 				p.Path = v
 			case "slug":
 				p.Slug = v
