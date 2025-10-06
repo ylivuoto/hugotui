@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -38,6 +39,7 @@ type model struct {
 	height   int
 	focus    int
 	content  string
+	form     *huh.Form
 }
 
 func mainModel() (*model, error) {
@@ -80,15 +82,18 @@ func mainModel() (*model, error) {
 
 	vp.SetContent(str)
 
+	form := newCreateForm([]string{"my", "awesome", "tags"})
+
 	return &model{
 		list:     l,
 		viewport: vp,
 		renderer: renderer,
+		form:     form,
 	}, nil
 }
 
 func (m *model) Init() tea.Cmd {
-	return nil
+	return m.form.Init()
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -98,10 +103,13 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c", "esc":
 			return m, tea.Quit
 		case "tab":
-			// Switch focus between list and viewport
-			m.focus = (m.focus + 1) % 2
+			// Switch focus between list and viewport, but do not switch on create from
+			if m.focus != 3 {
+				m.focus = (m.focus + 1) % 2
+			}
 		case "n":
-			commands.CreateArticle()
+			m.focus = 3
+			return updateCreate(msg, m)
 		default:
 			if m.focus == 0 {
 				var cmd tea.Cmd
@@ -112,8 +120,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.focus == 1 {
 				var cmd tea.Cmd
 				m.viewport, cmd = m.viewport.Update(msg)
-				m.renderSelected()
 				return m, cmd
+			}
+			if m.focus == 3 {
+				return updateCreate(msg, m)
 			}
 		}
 	case tea.WindowSizeMsg:
@@ -123,8 +133,11 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		m.list.SetSize(msg.Width-h, msg.Height-v-2)
 		m.viewport.Height = msg.Height - v - 2
-		m.renderSelected()
 	default:
+		// Prcess huh form internal messages
+		if m.focus == 3 {
+			return updateCreate(msg, m)
+		}
 		return m, nil
 	}
 	return m, nil
@@ -134,11 +147,40 @@ func (m *model) renderSelected() {
 	sel := m.list.SelectedItem()
 	item := sel.(item)
 	out, err := m.renderer.Render(item.content)
+	// on render error, show raw body
 	if err != nil {
-		// on render error, show raw body
 		m.viewport.SetContent(item.content)
 		return
 	}
 	m.viewport.SetContent(out)
 	m.viewport.GotoTop()
+}
+
+func newCreateForm(tags []string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewMultiSelect[string]().
+				Key("tags").
+				Title("Select tags").
+				Options(huh.NewOptions(tags...)...),
+
+			huh.NewInput().
+				Key("heading").
+				Title("Heading"),
+
+			huh.NewInput().
+				Key("date").
+				Title("Date"),
+		),
+	)
+}
+
+// Process the form
+func updateCreate(msg tea.Msg, m *model) (tea.Model, tea.Cmd) {
+	form, cmd := m.form.Update(msg)
+
+	if f, ok := form.(*huh.Form); ok {
+		m.form = f
+	}
+	return m, cmd
 }

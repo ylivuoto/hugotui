@@ -1,8 +1,30 @@
 package main
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"fmt"
+	"strings"
+
+	"hugotui/commands"
+
+	"github.com/charmbracelet/huh"
+	"github.com/charmbracelet/lipgloss"
+)
+
+func (m model) appBoundaryView(text string) string {
+	return lipgloss.PlaceHorizontal(
+		m.width,
+		lipgloss.Left,
+		lipgloss.NewStyle().
+			Foreground(lipgloss.Color("62")).
+			Bold(true).
+			Padding(0, 1, 0, 2).Render(text),
+		lipgloss.WithWhitespaceChars("/"),
+		lipgloss.WithWhitespaceForeground(lipgloss.Color("62")),
+	)
+}
 
 func (m model) View() string {
+	header := m.appBoundaryView("Create artice")
 	listBoxStyle := lipgloss.NewStyle().
 		MarginRight(1).
 		Border(lipgloss.RoundedBorder())
@@ -18,6 +40,24 @@ func (m model) View() string {
 			BorderForeground(lipgloss.Color("62"))
 	}
 
+	v := strings.TrimSuffix(m.form.View(), "\n\n")
+	form := lipgloss.NewStyle().Margin(1, 0).Render(v)
+
 	row := lipgloss.JoinHorizontal(lipgloss.Top, listBoxStyle.Render(m.list.View()), m.viewport.View())
+
+	if m.focus == 3 {
+		// Check if form is done, and store results
+		if m.form.State == huh.StateCompleted {
+			heading := m.form.GetString("heading")
+
+			// cast to []string
+			tags := m.form.Get("tags").([]string)
+
+			commands.CreateArticle(heading, tags)
+			return fmt.Sprintf("You selected: %s, Lvl. %s", heading, tags)
+		}
+		return docStyle.Render(header + "\n" + form)
+	}
+
 	return docStyle.Render(row)
 }

@@ -5,21 +5,27 @@ import (
 	"os"
 	"os/exec"
 	"path"
+
+	"hugotui/utils"
+
+	"github.com/gosimple/slug"
 )
 
 // CreateArticle implements 'hugo new content'
-func CreateArticle() error {
+func CreateArticle(title string, tags []string) ([]byte, error) {
 	// Run Hugo command
 	// TODO: set path properly via input
-	path := path.Join("content", "posts", "temp.md")
-	cmd := exec.Command("hugo", "new", "content", path)
+	filename := slug.Make(title) + ".md"
+	filepath := path.Join("content", "posts", filename)
+	cmd := exec.Command("hugo", "new", "content", filepath)
 	cmd.Dir = os.Getenv("HUGO_PATH") // ← your Hugo project directory
 	out, err := cmd.Output()
 	if err != nil {
-		return err
+		return out, err
 	}
-	// TODO: open recently created file
-	println(string(out))
 
-	return nil
+	// TODO: open recently created file
+	utils.OpenFileInEditor(path.Join(cmd.Dir, filepath))
+
+	return out, nil
 }
