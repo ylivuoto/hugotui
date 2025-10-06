@@ -24,7 +24,8 @@ func (m model) appBoundaryView(text string) string {
 }
 
 func (m model) View() string {
-	header := m.appBoundaryView("Create artice")
+	// TODO: improve styles
+	header := m.appBoundaryView("Create article")
 	listBoxStyle := lipgloss.NewStyle().
 		MarginRight(1).
 		Border(lipgloss.RoundedBorder())
@@ -53,6 +54,7 @@ func (m model) View() string {
 			// cast to []string
 			tags := m.form.Get("tags").([]string)
 
+			// TODO: form to center
 			commands.CreateArticle(heading, tags)
 			return fmt.Sprintf("You selected: %s, Lvl. %s", heading, tags)
 		}

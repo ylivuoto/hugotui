@@ -42,6 +42,7 @@ func ListHugoPosts() ([]Post, error) {
 	}
 
 	// Parse each record
+	// TODO: refactor name everywhere, article?
 	var posts []Post
 	headers := records[0]
 	for _, row := range records[1:] {

@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	// TODO: implement sftp push
 	model, err := mainModel()
 	if err != nil {
 		fmt.Println("Could not initialize Bubble Tea model:", err)

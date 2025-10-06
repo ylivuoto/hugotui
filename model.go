@@ -99,6 +99,9 @@ func (m *model) Init() tea.Cmd {
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		// TODO: open previously created file in editor
+		// TODO: keybindings help
+		// TODO: return to preious view from create
 		switch msg.String() {
 		case "q", "ctrl+c", "esc":
 			return m, tea.Quit
@@ -108,6 +111,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focus = (m.focus + 1) % 2
 			}
 		case "n":
+			// TODO: proper keybindings for create new article
 			m.focus = 3
 			return updateCreate(msg, m)
 		default:
@@ -159,6 +163,8 @@ func (m *model) renderSelected() {
 func newCreateForm(tags []string) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
+
+			// TODO: make tags dynamic, pick from existing tags
 			huh.NewMultiSelect[string]().
 				Key("tags").
 				Title("Select tags").
@@ -168,9 +174,11 @@ func newCreateForm(tags []string) *huh.Form {
 				Key("heading").
 				Title("Heading"),
 
+			// TODO: datepicker, use community package
 			huh.NewInput().
 				Key("date").
 				Title("Date"),
+			// TODO: confirm button to submit the form
 		),
 	)
 }
