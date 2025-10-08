@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 )
 
 // ReadFileAsString reads the file at the given path and returns its contents as a string.
@@ -38,11 +39,21 @@ func OpenFileInEditor(filePath string) error {
 	return nil
 }
 
-func ModifyFileTitle(path string, title string) error {
-	command := []string{"sed", "-i", fmt.Sprintf("s/title: .*/title: \"%s\"/", title), path}
-	cmd := exec.Command(command[0], command[1:]...)
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("Failed: %v", err)
+func ModifyFileTitle(filepath string, title string) error {
+	fullPath := path.Join(HugoProject, filepath)
+	println("Modifying title in file:", fullPath)
+	data, err := os.ReadFile(fullPath)
+	println(string(data))
+	if err != nil {
+		return err
 	}
-	return nil
+
+	lines := strings.Split(string(data), "\n")
+	for i, line := range lines {
+		if strings.HasPrefix(line, "title = ") {
+			lines[i] = fmt.Sprintf("title =  \"%s\"", title)
+			break
+		}
+	}
+	return os.WriteFile(fullPath, []byte(strings.Join(lines, "\n")), 0o644)
 }

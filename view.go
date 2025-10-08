@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"hugotui/commands"
+	"hugotui/utils"
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
@@ -49,10 +50,10 @@ func (m model) View() string {
 	if m.focus == 2 {
 		// Check if form is done, and store results
 		if m.form.State == huh.StateCompleted {
-			// heading := m.form.GetString("heading")
+			heading := m.form.GetString("heading")
 			// FIX: modify filename based on form result
 
-			// utils.ModifyFileTitle(m.list.SelectedItem().(item).path, heading)
+			utils.ModifyFileTitle(m.list.SelectedItem().(item).path, heading)
 			// FIX: changing focus won't work just like that, maybe trigger update?
 			m.focus = 0
 			return docStyle.Render(row)
