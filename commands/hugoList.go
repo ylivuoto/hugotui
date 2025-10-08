@@ -3,7 +3,7 @@ package commands
 
 import (
 	"encoding/csv"
-	"os"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -24,9 +24,10 @@ type Post struct {
 func ListHugoPosts() ([]Post, error) {
 	// Run Hugo command
 	cmd := exec.Command("hugo", "list", "all")
-	cmd.Dir = os.Getenv("HUGO_PATH") // ← your Hugo project directory
+	cmd.Dir = utils.HugoProject // ← your Hugo project directory
 	out, err := cmd.Output()
 	if err != nil {
+		fmt.Println("Error executing hugo list in: ", cmd.Dir)
 		return nil, err
 	}
 

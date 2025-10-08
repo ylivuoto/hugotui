@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"os"
 
+	"hugotui/utils"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
-	// TODO: implement sftp push
+	// TODO: implement scp push
+	utils.SetupConfig()
 	model, err := mainModel()
 	if err != nil {
 		fmt.Println("Could not initialize Bubble Tea model:", err)

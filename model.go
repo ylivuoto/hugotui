@@ -20,6 +20,7 @@ type item struct {
 	title, date string
 	tags        []string
 	content     string
+	path        string
 }
 
 // Title as is, join rest of info for desc
@@ -50,7 +51,7 @@ func mainModel() (*model, error) {
 	// Make bubbletea list items
 	items := make([]list.Item, len(posts))
 	for i, p := range posts {
-		items[i] = item{title: p.Title, date: p.Date, tags: p.Tags, content: p.Content}
+		items[i] = item{title: p.Title, date: p.Date, tags: p.Tags, content: p.Content, path: p.Path}
 	}
 
 	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
@@ -75,8 +76,15 @@ func mainModel() (*model, error) {
 		return nil, err
 	}
 
-	str, err := renderer.Render(l.SelectedItem().(item).content)
+	content := ""
+	selectedItem := l.SelectedItem()
+	if selectedItem != nil {
+		content = selectedItem.(item).content
+	}
+
+	str, err := renderer.Render(content)
 	if err != nil {
+		fmt.Println("Error rendering markdown:", err)
 		return nil, err
 	}
 
@@ -99,10 +107,11 @@ func (m *model) Init() tea.Cmd {
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		// TODO: open previously created file in editor
 		// TODO: keybindings help
 		// TODO: return to preious view from create
 		switch msg.String() {
+		case "o":
+			utils.OpenFileInEditor(m.list.SelectedItem().(item).path)
 		case "q", "ctrl+c", "esc":
 			return m, tea.Quit
 		case "tab":
@@ -149,6 +158,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *model) renderSelected() {
 	sel := m.list.SelectedItem()
+	if sel == nil {
+		return
+	}
 	item := sel.(item)
 	out, err := m.renderer.Render(item.content)
 	// on render error, show raw body

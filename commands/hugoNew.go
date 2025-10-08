@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"os"
 	"os/exec"
 	"path"
 
@@ -18,7 +17,7 @@ func CreateArticle(title string, tags []string) ([]byte, error) {
 	filename := slug.Make(title) + ".md"
 	filepath := path.Join("content", "posts", filename)
 	cmd := exec.Command("hugo", "new", "content", filepath)
-	cmd.Dir = os.Getenv("HUGO_PATH") // ← your Hugo project directory
+	cmd.Dir = utils.HugoProject // ← your Hugo project directory
 	out, err := cmd.Output()
 	if err != nil {
 		return out, err

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 )
 
 // ReadFileAsString reads the file at the given path and returns its contents as a string.
@@ -17,10 +18,11 @@ func ReadFileAsString(path string) (string, error) {
 
 func OpenFileInEditor(filePath string) error {
 	editor := os.Getenv("EDITOR")
+	terminal := os.Getenv("TERMINAL")
 	if editor == "" {
 		editor = "nvim"
 	}
-	cmd := exec.Command(editor, filePath)
+	cmd := exec.Command(terminal, "-e", editor, path.Join(HugoProject, filePath))
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
