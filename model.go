@@ -114,6 +114,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			utils.OpenFileInEditor(m.list.SelectedItem().(item).path)
 		case "q", "ctrl+c", "esc":
 			return m, tea.Quit
+		case "m":
+			m.form = newModifyForm()
+			m.form.Init()
+			m.focus = 2
 		case "tab":
 			// Switch focus between list and viewport, but do not switch on create from
 			if m.focus != 3 {
@@ -135,7 +139,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewport, cmd = m.viewport.Update(msg)
 				return m, cmd
 			}
-			if m.focus == 3 {
+			if m.focus >= 2 {
 				return updateCreate(msg, m)
 			}
 		}
@@ -148,7 +152,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.viewport.Height = msg.Height - v - 2
 	default:
 		// Prcess huh form internal messages
-		if m.focus == 3 {
+		if m.focus >= 2 {
 			return updateCreate(msg, m)
 		}
 		return m, nil
@@ -195,6 +199,16 @@ func newCreateForm(tags []string) *huh.Form {
 	)
 }
 
+func newModifyForm() *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Key("heading").
+				Title("Title"),
+		),
+	)
+}
+
 // Process the form
 func updateCreate(msg tea.Msg, m *model) (tea.Model, tea.Cmd) {
 	form, cmd := m.form.Update(msg)
@@ -204,3 +218,7 @@ func updateCreate(msg tea.Msg, m *model) (tea.Model, tea.Cmd) {
 	}
 	return m, cmd
 }
+
+// func updateModify(msg tea.Msg, m *model) (tea.Model, tea.Cmd) {
+// 	return m, cmd
+// }

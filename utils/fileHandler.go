@@ -37,3 +37,12 @@ func OpenFileInEditor(filePath string) error {
 	// TODO: return error properly
 	return nil
 }
+
+func ModifyFileTitle(path string, title string) error {
+	command := []string{"sed", "-i", fmt.Sprintf("s/title: .*/title: \"%s\"/", title), path}
+	cmd := exec.Command(command[0], command[1:]...)
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Failed: %v", err)
+	}
+	return nil
+}
