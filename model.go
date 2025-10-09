@@ -109,40 +109,22 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		// TODO: keybindings help
 		// TODO: return to preious view from create
-		switch msg.String() {
-		case "o":
-			utils.OpenFileInEditor(m.list.SelectedItem().(item).path)
-		case "q", "ctrl+c", "esc":
-			return m, tea.Quit
-		case "m":
-			m.form = newModifyForm()
-			m.form.Init()
-			m.focus = 2
-		case "tab":
-			// Switch focus between list and viewport, but do not switch on create from
-			if m.focus != 3 {
-				m.focus = (m.focus + 1) % 2
-			}
-		case "n":
-			// TODO: proper keybindings for create new article
-			m.focus = 3
-			return updateCreate(msg, m)
-		default:
-			if m.focus == 0 {
-				var cmd tea.Cmd
-				m.list, cmd = m.list.Update(msg)
-				m.renderSelected()
-				return m, cmd
-			}
-			if m.focus == 1 {
-				var cmd tea.Cmd
-				m.viewport, cmd = m.viewport.Update(msg)
-				return m, cmd
-			}
-			if m.focus >= 2 {
-				return updateCreate(msg, m)
-			}
+		if m.focus < 2 {
+			mainViewKeybindings(m, &msg)
 		}
+		var cmd tea.Cmd
+		if m.focus == 0 {
+			m.list, cmd = m.list.Update(msg)
+			m.renderSelected()
+		}
+		if m.focus == 1 {
+			m.viewport, cmd = m.viewport.Update(msg)
+		}
+		if m.focus >= 2 {
+			return updateCreate(msg, m)
+		}
+		return m, cmd
+
 	case tea.WindowSizeMsg:
 		// Needed for rendering list properly, glamour should work without it
 		h, v := docStyle.GetFrameSize()
@@ -156,6 +138,31 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return updateCreate(msg, m)
 		}
 		return m, nil
+	}
+	return m, nil
+}
+
+func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "m":
+		m.form = newModifyForm()
+		m.form.Init()
+		m.focus = 2
+	case "n":
+		// TODO: proper keybindings for create new article
+		m.focus = 3
+		return updateCreate(msg, m)
+	case "o":
+		utils.OpenFileInEditor(m.list.SelectedItem().(item).path)
+	case "q", "ctrl+c", "esc":
+		return m, tea.Quit
+	case "r":
+		commands.Publish()
+	case "tab":
+		// Switch focus between list and viewport, but do not switch on create from
+		if m.focus != 3 {
+			m.focus = (m.focus + 1) % 2
+		}
 	}
 	return m, nil
 }
