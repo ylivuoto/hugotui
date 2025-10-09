@@ -206,6 +206,7 @@ func newModifyForm() *huh.Form {
 				Key("heading").
 				Title("Title"),
 		),
+		// TODO: add checkbox for optionally modify file path based on title
 	)
 }
 

@@ -13,18 +13,19 @@ import (
 // CreateArticle implements 'hugo new content'
 func CreateArticle(title string, tags []string) ([]byte, error) {
 	// Run Hugo command
-	// TODO: set path properly via input
 	filename := slug.Make(title) + ".md"
 	filepath := path.Join("content", "posts", filename)
-	cmd := exec.Command("hugo", "new", "content", filepath)
+	out, err := Execute("hugo", "new", "content", filepath)
+	utils.OpenFileInEditor(path.Join(utils.HugoProject, filepath))
+	return out, err
+}
+
+func Execute(command string, args ...string) ([]byte, error) {
+	cmd := exec.Command(command, args...)
 	cmd.Dir = utils.HugoProject // ← your Hugo project directory
 	out, err := cmd.Output()
 	if err != nil {
 		return out, err
 	}
-
-	// TODO: open recently created file
-	utils.OpenFileInEditor(path.Join(cmd.Dir, filepath))
-
 	return out, nil
 }

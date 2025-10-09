@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+
+	"github.com/gosimple/slug"
 )
 
 // ReadFileAsString reads the file at the given path and returns its contents as a string.
@@ -41,9 +43,7 @@ func OpenFileInEditor(filePath string) error {
 
 func ModifyFileTitle(filepath string, title string) error {
 	fullPath := path.Join(HugoProject, filepath)
-	println("Modifying title in file:", fullPath)
 	data, err := os.ReadFile(fullPath)
-	println(string(data))
 	if err != nil {
 		return err
 	}
@@ -56,4 +56,10 @@ func ModifyFileTitle(filepath string, title string) error {
 		}
 	}
 	return os.WriteFile(fullPath, []byte(strings.Join(lines, "\n")), 0o644)
+}
+
+func ModifyFilePath(filepath string, title string) error {
+	filename := slug.Make(title) + ".md"
+	newPath := path.Join(HugoProject, "content", "posts", filename)
+	return os.Rename(path.Join(HugoProject, filepath), newPath)
 }

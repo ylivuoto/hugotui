@@ -50,10 +50,13 @@ func (m model) View() string {
 	if m.focus == 2 {
 		// Check if form is done, and store results
 		if m.form.State == huh.StateCompleted {
-			heading := m.form.GetString("heading")
-			// FIX: modify filename based on form result
+			title := m.form.GetString("heading")
+			filepath := m.list.SelectedItem().(item).path
 
-			utils.ModifyFileTitle(m.list.SelectedItem().(item).path, heading)
+			// TODO: handle error
+			utils.ModifyFileTitle(filepath, title)
+			utils.ModifyFilePath(filepath, title)
+
 			// FIX: changing focus won't work just like that, maybe trigger update?
 			m.focus = 0
 			return docStyle.Render(row)
