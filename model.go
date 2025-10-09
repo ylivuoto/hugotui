@@ -156,7 +156,9 @@ func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
 		utils.OpenFileInEditor(m.list.SelectedItem().(item).path)
 	case "q", "ctrl+c", "esc":
 		return m, tea.Quit
-	case "r":
+	case "p":
+		commands.Preview()
+	case "P":
 		commands.Publish()
 	case "tab":
 		// Switch focus between list and viewport, but do not switch on create from

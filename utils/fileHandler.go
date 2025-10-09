@@ -58,6 +58,7 @@ func ModifyFileTitle(filepath string, title string) error {
 	return os.WriteFile(fullPath, []byte(strings.Join(lines, "\n")), 0o644)
 }
 
+// ModifyFilePath renames the file based on the new title and moves it to the posts directory.
 func ModifyFilePath(filepath string, title string) error {
 	filename := slug.Make(title) + ".md"
 	newPath := path.Join(HugoProject, "content", "posts", filename)
