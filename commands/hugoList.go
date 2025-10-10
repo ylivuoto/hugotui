@@ -24,7 +24,6 @@ type Post struct {
 func ListHugoPosts() ([]Post, error) {
 	// Run Hugo command
 	cmd := exec.Command("hugo", "list", "all")
-	cmd.Dir = utils.HugoProject // ← your Hugo project directory
 	out, err := cmd.Output()
 	if err != nil {
 		fmt.Println("Error executing hugo list in: ", cmd.Dir)

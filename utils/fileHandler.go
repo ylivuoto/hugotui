@@ -25,7 +25,7 @@ func OpenFileInEditor(filePath string) error {
 	if editor == "" {
 		editor = "nvim"
 	}
-	cmd := exec.Command(terminal, "-e", editor, path.Join(HugoProject, filePath))
+	cmd := exec.Command(terminal, "-e", editor, filePath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -42,7 +42,7 @@ func OpenFileInEditor(filePath string) error {
 }
 
 func ModifyFileTitle(filepath string, title string) error {
-	fullPath := path.Join(HugoProject, filepath)
+	fullPath := filepath
 	data, err := os.ReadFile(fullPath)
 	if err != nil {
 		return err
@@ -61,6 +61,6 @@ func ModifyFileTitle(filepath string, title string) error {
 // ModifyFilePath renames the file based on the new title and moves it to the posts directory.
 func ModifyFilePath(filepath string, title string) error {
 	filename := slug.Make(title) + ".md"
-	newPath := path.Join(HugoProject, "content", "posts", filename)
-	return os.Rename(path.Join(HugoProject, filepath), newPath)
+	newPath := path.Join("content", "posts", filename)
+	return os.Rename(filepath, newPath)
 }
