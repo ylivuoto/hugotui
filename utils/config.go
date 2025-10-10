@@ -1,9 +1,19 @@
 package utils
 
-import "os"
+import (
+	"github.com/pelletier/go-toml"
+)
 
-var HugoRemote string
+var (
+	HugoRemote     string
+	HugoRemotePort string
+)
 
 func SetupConfig() {
-	HugoRemote = os.Getenv("HUGO_REMOTE")
+	tree, err := toml.LoadFile("hugo.toml")
+	if err != nil {
+		panic(err)
+	}
+	HugoRemote = tree.Get("hugotuiScpRemote").(string)
+	HugoRemotePort = tree.Get("hugotuiScpPort").(string)
 }

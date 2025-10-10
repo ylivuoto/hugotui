@@ -10,6 +10,7 @@ require (
 	github.com/charmbracelet/huh v0.7.0
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
 	github.com/gosimple/slug v1.15.0
+	github.com/pelletier/go-toml v1.9.5
 )
 
 require (

@@ -25,16 +25,19 @@ func Publish() ([]byte, []byte) {
 	// FIX: build path, needs to be hugo project folder
 	// TODO: port for scp
 	build, buildError := Execute("hugo")
-	upload, uploadError := Execute("scp", "-r", "public"+"/*", utils.HugoRemote)
 
 	if buildError != nil {
 		fmt.Println("Build error:", buildError)
 	}
-	if uploadError != nil {
-		fmt.Println("Upload error:", uploadError)
-	}
-
-	return build, upload
+	go func() {
+		upload, uploadError := Execute("bash", "-c", fmt.Sprintf("scp -r -P %s public/* %s", utils.HugoRemotePort, utils.HugoRemote))
+		fmt.Println("Upload output:", string(upload))
+		if uploadError != nil {
+			fmt.Println(string(upload))
+			fmt.Println("Upload error:", uploadError)
+		}
+	}()
+	return build, nil
 }
 
 func Preview() {
