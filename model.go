@@ -352,9 +352,19 @@ func transferFiles(ch chan string) {
 	ch <- "\nStarting transfer..."
 
 	// Run scp
-	// FIX: scp stops in very beginning exit 255
-	cmd := exec.Command("scp", "-r", "-P", port, "public/*", remoteDest)
-	err := cmd.Run()
+	cmd := exec.Command("hugo")
+	// cmd := exec.Command("scp", "-r", "-P", port, "public/*", remoteDest)
+	out, err := cmd.Output()
+	ch <- string(out)
+	if err != nil {
+		ch <- fmt.Sprintf("\n❌ Error: %v", err)
+	} else {
+		ch <- "\n Hugo built site!"
+	}
+
+	cmd = exec.Command("bash", "-c", fmt.Sprintf("scp -r -P %s %s* %s", port, localDir, remoteDest))
+	out, err = cmd.Output()
+	ch <- string(out)
 	if err != nil {
 		ch <- fmt.Sprintf("\n❌ Error: %v", err)
 	} else {
