@@ -201,7 +201,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
-	case "m":
+	case "e":
 		m.form = newModifyForm()
 		m.form.Init()
 		m.focus = 2
