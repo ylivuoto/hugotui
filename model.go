@@ -41,6 +41,8 @@ type model struct {
 	focus    int
 	content  string
 	form     *huh.Form
+	ready    bool
+	cmdLog   viewport.Model
 }
 
 func mainModel() (*model, error) {
@@ -54,7 +56,7 @@ func mainModel() (*model, error) {
 		items[i] = item{title: p.Title, date: p.Date, tags: p.Tags, content: p.Content, path: p.Path}
 	}
 
-	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	l := list.New(items, list.NewDefaultDelegate(), 15, 0)
 	l.Title = "My Awesome Posts"
 
 	const width = 77 // Configure viewport for markdown rendering for Glamour
@@ -103,6 +105,10 @@ func (m *model) Init() tea.Cmd {
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
 	// TODO: implement command logging
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -111,18 +117,24 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.focus < 2 {
 			mainViewKeybindings(m, &msg)
 		}
-		var cmd tea.Cmd
 		if m.focus == 0 {
 			m.list, cmd = m.list.Update(msg)
+			cmds = append(cmds, cmd)
 			m.renderSelected()
 		}
 		if m.focus == 1 {
 			m.viewport, cmd = m.viewport.Update(msg)
+			cmds = append(cmds, cmd)
 		}
 		if m.focus >= 2 {
 			return updateCreate(msg, m)
 		}
-		return m, cmd
+		// TODO: move into separete "focus" scope
+		//
+		// Handle keyboard and mouse events in the viewport
+		// m.cmdLog, cmd = m.cmdLog.Update(msg)
+		// cmds = append(cmds, cmd)
+		return m, tea.Batch(cmds...)
 
 	case tea.WindowSizeMsg:
 		// Needed for rendering list properly, glamour should work without it
@@ -134,6 +146,21 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Also height could be relationally sized
 		m.viewport.Height = msg.Height - v - 10
 		m.viewport.Width = msg.Width - h - 60
+		verticalMarginHeight := m.viewport.Height
+		if !m.ready {
+			// Since this program is using the full size of the viewport we
+			// need to wait until we've received the window dimensions before
+			// we can initialize the viewport. The initial dimensions come in
+			// quickly, though asynchronously, which is why we wait for them
+			// here.
+			m.cmdLog = viewport.New(msg.Width, msg.Height-verticalMarginHeight-4)
+			m.cmdLog.YPosition = verticalMarginHeight
+			m.cmdLog.SetContent(fmt.Sprintf("Test %s", m.content))
+			m.ready = true
+		} else {
+			m.cmdLog.Width = msg.Width
+			m.cmdLog.Height = msg.Height - verticalMarginHeight - 5
+		}
 
 	default:
 		// Prcess huh form internal messages
@@ -142,7 +169,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	}
-	return m, nil
+
+	return m, tea.Batch(cmds...)
 }
 
 func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
@@ -184,6 +212,8 @@ func (m *model) renderSelected() {
 		m.viewport.SetContent(item.content)
 		return
 	}
+	m.cmdLog.SetContent(item.path)
+	m.cmdLog.GotoBottom()
 	m.viewport.SetContent(out)
 	m.viewport.GotoTop()
 }
