@@ -312,8 +312,8 @@ func transferFiles(ch chan string) {
 	// TODO: move this function
 	defer close(ch)
 	localDir := "public/"
-	remoteDest := "op@ylivuoto.net:/var/www/html/"
-	port := "372"
+	remoteDest := utils.HugoRemote
+	port := utils.HugoRemotePort
 
 	// List all files first
 	ch <- "Scanning files..."
