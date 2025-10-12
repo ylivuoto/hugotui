@@ -2,6 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"hugotui/commands"
 	"hugotui/utils"
@@ -15,6 +20,11 @@ import (
 )
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
+
+type (
+	lineMsg string
+	doneMsg struct{ err error }
+)
 
 type item struct {
 	title, date string
@@ -43,11 +53,15 @@ type model struct {
 	form     *huh.Form
 	ready    bool
 	cmdLog   viewport.Model
+	lines    []string
+	done     bool
+	sub      chan string
 }
 
 func mainModel() (*model, error) {
 	// Pick all posts via hugo cli
 	posts, _ := commands.ListHugoPosts()
+	sub := make(chan string)
 
 	// TODO: fix latest post tags to not to show earlirer posts tags
 	// Make bubbletea list items
@@ -97,11 +111,15 @@ func mainModel() (*model, error) {
 		viewport: vp,
 		renderer: renderer,
 		form:     form,
+		sub:      sub,
 	}, nil
 }
 
 func (m *model) Init() tea.Cmd {
-	return m.form.Init()
+	return tea.Batch(
+		m.form.Init(),
+		waitForLine(m.sub),
+	)
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -162,6 +180,14 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cmdLog.Height = msg.Height - verticalMarginHeight - 5
 		}
 
+	case lineMsg:
+		m.lines = append(m.lines, string(msg))
+		m.updateViewport()
+		return m, waitForLine(m.sub)
+
+	case doneMsg:
+		m.done = true
+		m.updateViewport()
 	default:
 		// Prcess huh form internal messages
 		if m.focus >= 2 {
@@ -190,7 +216,8 @@ func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "p":
 		commands.Preview()
 	case "P":
-		commands.Publish()
+		// commands.Publish()
+		go transferFiles(m.sub)
 	case "tab":
 		// Switch focus between list and viewport, but do not switch on create from
 		if m.focus != 3 {
@@ -212,8 +239,6 @@ func (m *model) renderSelected() {
 		m.viewport.SetContent(item.content)
 		return
 	}
-	m.cmdLog.SetContent(item.path)
-	m.cmdLog.GotoBottom()
 	m.viewport.SetContent(out)
 	m.viewport.GotoTop()
 }
@@ -262,6 +287,77 @@ func updateCreate(msg tea.Msg, m *model) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-// func updateModify(msg tea.Msg, m *model) (tea.Model, tea.Cmd) {
-// 	return m, cmd
-// }
+func (m *model) updateViewport() {
+	content := strings.Join(m.lines, "\n")
+	if m.done {
+		content += "\n\n" + lipgloss.NewStyle().
+			Foreground(lipgloss.Color("2")).
+			Render("✓ Done! ")
+	}
+	m.cmdLog.SetContent(content)
+	m.cmdLog.GotoBottom()
+}
+
+func waitForLine(sub chan string) tea.Cmd {
+	return func() tea.Msg {
+		line, ok := <-sub
+		if !ok {
+			return doneMsg{}
+		}
+		return lineMsg(line)
+	}
+}
+
+func transferFiles(ch chan string) {
+	// TODO: move this function
+	defer close(ch)
+	localDir := "public/"
+	remoteDest := "op@ylivuoto.net:/var/www/html/"
+	port := "372"
+
+	// List all files first
+	ch <- "Scanning files..."
+	var files []string
+	var totalSize int64
+
+	filepath.WalkDir(localDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		files = append(files, path)
+		info, _ := d.Info()
+		totalSize += info.Size()
+		return nil
+	})
+	ch <- fmt.Sprintf("Found %d files (%.2f MB)\n", len(files), float64(totalSize)/(1024*1024))
+	ch <- "Simulating file transfer..."
+	// Show each file
+	for _, file := range files {
+		info, _ := os.Stat(file)
+		relPath, _ := filepath.Rel(localDir, file)
+		size := info.Size()
+
+		var sizeStr string
+		if size < 1024 {
+			sizeStr = fmt.Sprintf("%d B", size)
+		} else if size < 1024*1024 {
+			sizeStr = fmt.Sprintf("%.2f KB", float64(size)/1024)
+		} else {
+			sizeStr = fmt.Sprintf("%.2f MB", float64(size)/(1024*1024))
+		}
+		ch <- fmt.Sprintf("  %s (%s)", relPath, sizeStr)
+
+	}
+
+	ch <- "\nStarting transfer..."
+
+	// Run scp
+	// FIX: scp stops in very beginning exit 255
+	cmd := exec.Command("scp", "-r", "-P", port, "public/*", remoteDest)
+	err := cmd.Run()
+	if err != nil {
+		ch <- fmt.Sprintf("\n❌ Error: %v", err)
+	} else {
+		ch <- "\n✅ All files transferred successfully!"
+	}
+}
