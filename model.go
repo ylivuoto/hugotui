@@ -313,7 +313,7 @@ func transferFiles(ch chan string) {
 	defer close(ch)
 	localDir := "public/"
 	remoteDest := utils.HugoRemote
-	port := utils.HugoRemotePort
+	remoteDir := utils.HugoRemoteDir
 
 	// List all files first
 	ch <- "Scanning files..."
@@ -362,7 +362,7 @@ func transferFiles(ch chan string) {
 		ch <- "\n Hugo built site!"
 	}
 
-	cmd = exec.Command("bash", "-c", fmt.Sprintf("scp -r -P %s %s* %s", port, localDir, remoteDest))
+	cmd = exec.Command("bash", "-c", fmt.Sprintf("scp -r %s* %s:%s", localDir, remoteDest, remoteDir))
 	out, err = cmd.Output()
 	ch <- string(out)
 	if err != nil {

@@ -30,7 +30,7 @@ func Publish() ([]byte, []byte) {
 		fmt.Println("Build error:", buildError)
 	}
 	go func() {
-		upload, uploadError := Execute("bash", "-c", fmt.Sprintf("scp -r -P %s public/* %s", utils.HugoRemotePort, utils.HugoRemote))
+		upload, uploadError := Execute("bash", "-c", fmt.Sprintf("scp -r public/* %s:%s", utils.HugoRemote, utils.HugoRemoteDir))
 		fmt.Println("Upload output:", string(upload))
 		if uploadError != nil {
 			fmt.Println(string(upload))
