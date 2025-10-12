@@ -32,6 +32,14 @@ func (m model) View() string {
 		Border(lipgloss.RoundedBorder())
 		// Render(m.list.View())
 
+	commadLog := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		Padding(1, 1).
+		Width(m.width - 4).
+		Height(8).
+		Render(m.content)
+
 	if m.focus == 0 {
 		listBoxStyle = listBoxStyle.BorderForeground(lipgloss.Color("62")) // green-ish
 	}
@@ -78,5 +86,6 @@ func (m model) View() string {
 		return docStyle.Render(header + "\n" + form)
 	}
 
-	return docStyle.Render(row)
+	// return docStyle.Render(row)
+	return docStyle.Render(lipgloss.JoinVertical(0, row, commadLog))
 }

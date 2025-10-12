@@ -57,9 +57,7 @@ func mainModel() (*model, error) {
 	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
 	l.Title = "My Awesome Posts"
 
-	const width = 78
-
-	// Configure viewport for markdown rendering for Glamour
+	const width = 77 // Configure viewport for markdown rendering for Glamour
 	vp := viewport.New(width, 20)
 	vp.Style = lipgloss.NewStyle().
 		BorderStyle(lipgloss.RoundedBorder()).
@@ -105,6 +103,7 @@ func (m *model) Init() tea.Cmd {
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// TODO: implement command logging
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		// TODO: keybindings help
@@ -130,8 +129,12 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		h, v := docStyle.GetFrameSize()
 		m.width = msg.Width
 		m.height = msg.Height
-		m.list.SetSize(msg.Width-h, msg.Height-v-2)
-		m.viewport.Height = msg.Height - v - 2
+		m.list.SetSize(msg.Width-h, msg.Height-v-12)
+		// TODO: fix viewport width on resize, now hardcoded 77 and 60
+		// Also height could be relationally sized
+		m.viewport.Height = msg.Height - v - 10
+		m.viewport.Width = msg.Width - h - 60
+
 	default:
 		// Prcess huh form internal messages
 		if m.focus >= 2 {
