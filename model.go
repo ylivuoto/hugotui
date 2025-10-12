@@ -201,6 +201,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
+	// FIX: freezing after exiting form
 	case "e":
 		m.form = newModifyForm()
 		m.form.Init()
