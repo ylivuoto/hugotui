@@ -63,7 +63,6 @@ func mainModel() (*model, error) {
 	posts, _ := commands.ListHugoPosts()
 	sub := make(chan string)
 
-	// TODO: fix latest post tags to not to show earlirer posts tags
 	// Make bubbletea list items
 	items := make([]list.Item, len(posts))
 	for i, p := range posts {

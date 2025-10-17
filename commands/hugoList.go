@@ -43,28 +43,22 @@ func ListHugoPosts() ([]Post, error) {
 
 	// Parse each record
 	// TODO: refactor name everywhere, article?
-	var posts []Post
-	headers := records[0]
-	for _, row := range records[1:] {
+	numPosts := len(records) - 1
+	posts := make([]Post, numPosts)
+
+	for i, row := range records[1:] {
 		p := Post{}
-		for i, v := range row {
-			switch headers[i] {
-			case "path":
-				// TODO: handle error
-				content, _ := utils.ReadFileAsString(filepath.Join(cmd.Dir, v))
-				matter, body := utils.ParseFrontMatter(content)
-				p.Tags = matter.Tags
-				p.Content = body
-				p.Path = v
-			case "slug":
-				p.Slug = v
-			case "title":
-				p.Title = strings.Trim(v, `"`)
-			case "date":
-				p.Date = v
-			}
-		}
-		posts = append(posts, p)
+		content, _ := utils.ReadFileAsString(filepath.Join(cmd.Dir, row[0]))
+		matter, body := utils.ParseFrontMatter(content)
+		fmt.Println("Front matter: ", matter)
+		p.Tags = append([]string(nil), matter.Tags...)
+		p.Content = body
+		p.Path = row[0]
+		p.Slug = row[1]
+		p.Title = strings.Trim(row[2], `"`)
+		p.Date = row[3]
+		posts[i] = p
 	}
+
 	return posts, nil
 }

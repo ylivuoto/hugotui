@@ -22,8 +22,7 @@ func CreateArticle(title string, tags []string) ([]byte, error) {
 }
 
 func Publish() ([]byte, []byte) {
-	// FIX: build path, needs to be hugo project folder
-	// TODO: port for scp
+	// TODO: refactor publish, this function is out of use
 	build, buildError := Execute("hugo")
 
 	if buildError != nil {

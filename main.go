@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-	// TODO: implement scp push
 	utils.SetupConfig()
 	model, err := mainModel()
 	if err != nil {
