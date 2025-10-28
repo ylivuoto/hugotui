@@ -11,6 +11,8 @@ import (
 	"hugotui/commands"
 	"hugotui/utils"
 
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -56,6 +58,8 @@ type model struct {
 	lines    []string
 	done     bool
 	sub      chan string
+	keys     KeyMap
+	help     help.Model
 }
 
 func mainModel() (*model, error) {
@@ -71,6 +75,7 @@ func mainModel() (*model, error) {
 
 	l := list.New(items, list.NewDefaultDelegate(), 15, 0)
 	l.Title = "My Awesome Posts"
+	l.SetShowHelp(false)
 
 	const width = 77 // Configure viewport for markdown rendering for Glamour
 	vp := viewport.New(width, 20)
@@ -105,12 +110,26 @@ func mainModel() (*model, error) {
 
 	form := newCreateForm([]string{"my", "awesome", "tags"})
 
+	// Help
+	help := help.New()
+	help.Styles.ShortKey = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("8")).
+		Faint(true).
+		PaddingRight(1) // 👈 adds a single space between key & desc
+
+	help.Styles.FullKey = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("8")).
+		Faint(true).
+		PaddingRight(2) // slightly more for full view
+
 	return &model{
 		list:     l,
 		viewport: vp,
 		renderer: renderer,
 		form:     form,
 		sub:      sub,
+		keys:     Keys,
+		help:     help,
 	}, nil
 }
 
@@ -129,7 +148,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// TODO: implement command logging
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		// TODO: keybindings help
 		// TODO: return to preious view from create
 		if m.focus < 2 {
 			mainViewKeybindings(m, &msg)
@@ -164,6 +182,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.viewport.Height = msg.Height - v - 10
 		m.viewport.Width = msg.Width - h - 60
 		verticalMarginHeight := m.viewport.Height
+		m.help.Width = msg.Width
 		if !m.ready {
 			// Since this program is using the full size of the viewport we
 			// need to wait until we've received the window dimensions before
@@ -199,30 +218,30 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch msg.String() {
-	// FIX: freezing after exiting form
-	case "e":
+	switch {
+	// FIX: fix resize when toggiling help
+	// FIX: freezing after form exit
+	case key.Matches(msg, m.keys.Edit):
 		m.form = newModifyForm()
 		m.form.Init()
 		m.focus = 2
-	case "n":
-		// TODO: proper keybindings for create new article
+	case key.Matches(msg, m.keys.New):
 		m.focus = 3
 		return updateCreate(msg, m)
-	case "o":
+	case key.Matches(msg, m.keys.Open):
 		utils.OpenFileInEditor(m.list.SelectedItem().(item).path)
-	case "q", "ctrl+c", "esc":
+	case key.Matches(msg, m.keys.Quit):
 		return m, tea.Quit
-	case "p":
+	case key.Matches(msg, m.keys.Preview):
 		commands.Preview()
-	case "P":
-		// commands.Publish()
+	case key.Matches(msg, m.keys.Push):
 		go transferFiles(m.sub)
-	case "tab":
-		// Switch focus between list and viewport, but do not switch on create from
+	case key.Matches(msg, m.keys.Tab):
 		if m.focus != 3 {
 			m.focus = (m.focus + 1) % 2
 		}
+	case key.Matches(msg, m.keys.Help):
+		m.help.ShowAll = !m.help.ShowAll
 	}
 	return m, nil
 }

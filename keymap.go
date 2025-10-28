@@ -72,8 +72,8 @@ var Keys = KeyMap{
 		key.WithHelp("o", "open item"),
 	),
 	Tab: key.NewBinding(
-		key.WithKeys("t"),
-		key.WithHelp("t", "open in new tab"),
+		key.WithKeys("tab"),
+		key.WithHelp("tab", "toggle focus"),
 	),
 	Preview: key.NewBinding(
 		key.WithKeys("p"),

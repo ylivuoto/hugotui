@@ -55,6 +55,7 @@ func (m model) View() string {
 
 	row := lipgloss.JoinHorizontal(lipgloss.Top, listBoxStyle.Render(m.list.View()), m.viewport.View())
 
+	helpView := m.help.View(m.keys)
 	if m.focus == 2 {
 		// Check if form is done, and store results
 		if m.form.State == huh.StateCompleted {
@@ -90,5 +91,5 @@ func (m model) View() string {
 		return "\n  Initializing..."
 	}
 	// return docStyle.Render(row)
-	return docStyle.Render(lipgloss.JoinVertical(0, row, commadLog))
+	return docStyle.Render(lipgloss.JoinVertical(0, row, commadLog, helpView))
 }
