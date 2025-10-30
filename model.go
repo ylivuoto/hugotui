@@ -281,6 +281,9 @@ func newCreateForm(tags []string) *huh.Form {
 				Key("date").
 				Title("Date"),
 			// TODO: confirm button to submit the form
+			huh.NewConfirm().
+				Key("confirm").
+				Title("Create article?"),
 		),
 	)
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"hugotui/commands"
@@ -24,7 +23,7 @@ func (m model) appBoundaryView(text string) string {
 	)
 }
 
-func (m model) View() string {
+func (m *model) View() string {
 	// TODO: improve styles
 	header := m.appBoundaryView("Create article")
 	listBoxStyle := lipgloss.NewStyle().
@@ -74,16 +73,8 @@ func (m model) View() string {
 	}
 	if m.focus == 3 {
 		// Check if form is done, and store results
-		if m.form.State == huh.StateCompleted {
-			heading := m.form.GetString("heading")
-
-			// cast to []string
-			tags := m.form.Get("tags").([]string)
-
-			// TODO: form to center
-			commands.CreateArticle(heading, tags)
-			return fmt.Sprintf("You selected: %s, Lvl. %s", heading, tags)
-		}
+		handleCreateArticle(m)
+		// showView("createArticle")
 		return docStyle.Render(header + "\n" + form)
 	}
 
@@ -92,4 +83,21 @@ func (m model) View() string {
 	}
 	// return docStyle.Render(row)
 	return docStyle.Render(lipgloss.JoinVertical(0, row, commadLog, helpView))
+}
+
+func handleCreateArticle(m *model) {
+	completed := m.form.State == huh.StateCompleted
+	confirmed := m.form.GetBool("confirm")
+
+	if completed && confirmed {
+
+		heading := m.form.GetString("heading")
+		tags := m.form.Get("tags").([]string)
+
+		commands.CreateArticle(heading, tags)
+	}
+
+	if completed && !confirmed {
+		m.focus = 0
+	}
 }
