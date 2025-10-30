@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"hugotui/commands"
@@ -64,27 +65,41 @@ func (m *model) handleCreateArticle() string {
 }
 
 func (m *model) handleEditArticle() string {
-	if m.form.State == huh.StateCompleted {
-		title := m.form.GetString("heading")
-		filepath := m.list.SelectedItem().(item).path
-
-		// TODO: handle error
-		utils.ModifyFileTitle(filepath, title)
-		utils.ModifyFilePath(filepath, title)
-
-		// FIX: changing focus won't work just like that, maybe trigger update?
-		m.focus = 0
-		m.refreshList()
-		return m.showView("default")
+	if m.form.State != huh.StateCompleted {
+		return m.showView("editArticle")
 	}
 
-	return m.showView("editArticle")
+	title := m.form.GetString("heading")
+	filepath := m.list.SelectedItem().(item).path
+
+	titleError := utils.ModifyFileTitle(filepath, title)
+	fileError := utils.ModifyFilePath(filepath, title)
+
+	if titleError != nil {
+		m.logMessage("Error updating title: \n" + titleError.Error())
+	}
+
+	if fileError != nil {
+		m.logMessage("Error renaming file: \n" + fileError.Error())
+	}
+
+	if titleError == nil && fileError == nil {
+		m.logMessage(fmt.Sprintf("Article updated successfully.\n\nOn path: %s\nWith name: %s", filepath, title))
+	}
+
+	m.focus = 0
+	m.refreshList()
+	return m.showView("default")
 }
 
 func (m *model) refreshList() {
 	items := fetchItems()
 	list := setupList(items, m.list.Width(), m.list.Height())
 	m.list = list
+}
+
+func (m *model) logMessage(msg string) {
+	m.sub <- msg
 }
 
 func (m *model) showView(view string) string {
