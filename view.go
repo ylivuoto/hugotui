@@ -31,14 +31,6 @@ func (m *model) View() string {
 		Border(lipgloss.RoundedBorder())
 		// Render(m.list.View())
 
-	commadLog := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		Padding(1, 1).
-		Width(m.width - 4).
-		Height(8).
-		Render(m.cmdLog.View())
-
 	if m.focus == 0 {
 		listBoxStyle = listBoxStyle.BorderForeground(lipgloss.Color("62")) // green-ish
 	}
@@ -54,7 +46,6 @@ func (m *model) View() string {
 
 	row := lipgloss.JoinHorizontal(lipgloss.Top, listBoxStyle.Render(m.list.View()), m.viewport.View())
 
-	helpView := m.help.View(m.keys)
 	if m.focus == 2 {
 		// Check if form is done, and store results
 		if m.form.State == huh.StateCompleted {
@@ -72,32 +63,59 @@ func (m *model) View() string {
 		return docStyle.Render(header + "\n" + form)
 	}
 	if m.focus == 3 {
-		// Check if form is done, and store results
-		handleCreateArticle(m)
-		// showView("createArticle")
-		return docStyle.Render(header + "\n" + form)
+		return m.handleCreateArticle()
 	}
 
 	if !m.ready {
 		return "\n  Initializing..."
 	}
 	// return docStyle.Render(row)
-	return docStyle.Render(lipgloss.JoinVertical(0, row, commadLog, helpView))
+	return m.showView("default")
 }
 
-func handleCreateArticle(m *model) {
+func (m *model) handleCreateArticle() string {
 	completed := m.form.State == huh.StateCompleted
 	confirmed := m.form.GetBool("confirm")
 
 	if completed && confirmed {
-
 		heading := m.form.GetString("heading")
 		tags := m.form.Get("tags").([]string)
 
 		commands.CreateArticle(heading, tags)
+		return m.showView("default")
 	}
 
 	if completed && !confirmed {
 		m.focus = 0
+		return m.showView("default")
+	}
+	return m.showView("createArticle")
+}
+
+func (m *model) showView(view string) string {
+	header := m.appBoundaryView("Create article")
+	listBoxStyle := lipgloss.NewStyle().
+		MarginRight(1).
+		Border(lipgloss.RoundedBorder())
+		// Render(m.list.View())
+
+	commadLog := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		Padding(1, 1).
+		Width(m.width - 4).
+		Height(8).
+		Render(m.cmdLog.View())
+
+	v := strings.TrimSuffix(m.form.View(), "\n\n")
+	form := lipgloss.NewStyle().Margin(1, 0).Render(v)
+	row := lipgloss.JoinHorizontal(lipgloss.Top, listBoxStyle.Render(m.list.View()), m.viewport.View())
+	helpView := m.help.View(m.keys)
+
+	switch view {
+	case "createArticle":
+		return docStyle.Render(header + "\n" + form)
+	default:
+		return docStyle.Render(lipgloss.JoinVertical(0, row, commadLog, helpView))
 	}
 }
