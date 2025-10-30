@@ -117,7 +117,7 @@ func (m *model) showView(view string) string {
 		BorderForeground(lipgloss.Color("240")).
 		Padding(1, 1).
 		Width(m.width - 4).
-		Height(8).
+		Height(5).
 		Render(m.cmdLog.View())
 
 	v := strings.TrimSuffix(m.form.View(), "\n\n")

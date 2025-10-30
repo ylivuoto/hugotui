@@ -21,7 +21,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var docStyle = lipgloss.NewStyle().Margin(1, 2)
+var docStyle = lipgloss.NewStyle().Margin(0, 1)
 
 type (
 	lineMsg string
@@ -155,10 +155,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmd  tea.Cmd
 		cmds []tea.Cmd
 	)
-	// TODO: implement command logging
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		// TODO: return to preious view from create
 		if m.focus < 2 {
 			mainViewKeybindings(m, &msg)
 		}
@@ -186,10 +184,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		h, v := docStyle.GetFrameSize()
 		m.width = msg.Width
 		m.height = msg.Height
-		m.list.SetSize(msg.Width-h, msg.Height-v-12)
+		m.list.SetSize(msg.Width-h, msg.Height-v-11)
 		// TODO: fix viewport width on resize, now hardcoded 77 and 60
 		// Also height could be relationally sized
-		m.viewport.Height = msg.Height - v - 10
+		m.viewport.Height = msg.Height - v - 9
 		m.viewport.Width = msg.Width - h - 60
 		verticalMarginHeight := m.viewport.Height
 		m.help.Width = msg.Width
@@ -229,7 +227,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
-	// FIX: fix resize when toggiling help
 	// FIX: freezing after create article form exit
 	case key.Matches(msg, m.keys.Edit):
 		m.form = newModifyForm()
@@ -290,7 +287,7 @@ func newCreateForm(tags []string) *huh.Form {
 			huh.NewInput().
 				Key("date").
 				Title("Date"),
-			// TODO: confirm button to submit the form
+
 			huh.NewConfirm().
 				Key("confirm").
 				Title("Create article?"),
