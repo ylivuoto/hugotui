@@ -35,14 +35,16 @@ type item struct {
 	path        string
 }
 
-// Title as is, join rest of info for desc
-func (i item) Title() string { return i.title }
-
 // TODO: fix date format to show day before month
-func (i item) Description() string {
-	return fmt.Sprintf("%s - %s", utils.FormatHugoDate(i.date), utils.ParseTags(i.tags))
-}
+func (i item) Title() string       { return i.title }
 func (i item) FilterValue() string { return i.title }
+func (i item) Description() string {
+	return fmtDesc(i.date, i.tags)
+}
+
+func fmtDesc(dateStr string, tags []string) string {
+	return fmt.Sprintf("%s - %s", utils.FormatHugoDate(dateStr), utils.ParseTags(tags))
+}
 
 type model struct {
 	list     list.Model
@@ -62,20 +64,28 @@ type model struct {
 	help     help.Model
 }
 
-func mainModel() (*model, error) {
-	// Pick all posts via hugo cli
+func fetchItems() []list.Item {
 	posts, _ := commands.ListHugoPosts()
-	sub := make(chan string)
-
-	// Make bubbletea list items
 	items := make([]list.Item, len(posts))
 	for i, p := range posts {
 		items[i] = item{title: p.Title, date: p.Date, tags: p.Tags, content: p.Content, path: p.Path}
 	}
+	return items
+}
 
-	l := list.New(items, list.NewDefaultDelegate(), 15, 0)
+func setupList(items []list.Item, width int, heigth int) list.Model {
+	l := list.New(items, list.NewDefaultDelegate(), width, heigth)
 	l.Title = "My Awesome Posts"
 	l.SetShowHelp(false)
+	return l
+}
+
+func mainModel() (*model, error) {
+	// Pick all posts via hugo cli
+	sub := make(chan string)
+
+	items := fetchItems()
+	l := setupList(items, 10, 20)
 
 	const width = 77 // Configure viewport for markdown rendering for Glamour
 	vp := viewport.New(width, 20)

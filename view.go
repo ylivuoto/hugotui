@@ -40,7 +40,6 @@ func (m *model) View() string {
 	if !m.ready {
 		return "\n  Initializing..."
 	}
-	// return docStyle.Render(row)
 	return m.showView("default")
 }
 
@@ -53,6 +52,7 @@ func (m *model) handleCreateArticle() string {
 		tags := m.form.Get("tags").([]string)
 
 		commands.CreateArticle(heading, tags)
+		m.refreshList()
 		return m.showView("default")
 	}
 
@@ -74,10 +74,17 @@ func (m *model) handleEditArticle() string {
 
 		// FIX: changing focus won't work just like that, maybe trigger update?
 		m.focus = 0
+		m.refreshList()
 		return m.showView("default")
 	}
 
 	return m.showView("editArticle")
+}
+
+func (m *model) refreshList() {
+	items := fetchItems()
+	list := setupList(items, m.list.Width(), m.list.Height())
+	m.list = list
 }
 
 func (m *model) showView(view string) string {
