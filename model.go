@@ -35,7 +35,6 @@ type item struct {
 	path        string
 }
 
-// TODO: fix date format to show day before month
 func (i item) Title() string       { return i.title }
 func (i item) FilterValue() string { return i.title }
 func (i item) Description() string {

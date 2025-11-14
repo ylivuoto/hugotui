@@ -16,5 +16,5 @@ func FormatHugoDate(dateStr string) string {
 		}
 	}
 	// now format nicely
-	return t.Format("01.02.2006 15:04")
+	return t.Format("02.01.2006 15:04")
 }
