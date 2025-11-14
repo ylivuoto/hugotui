@@ -20,6 +20,8 @@ func CreateArticle(title string, tags []string) ([]byte, error) {
 	filename := slug.Make(title) + ".md"
 	filepath := path.Join("content", "posts", filename)
 	out, err := Execute("hugo", "new", "content", filepath)
+
+	// Run editor in goroutine for parallelism
 	utils.OpenFileInEditor(filepath)
 	return out, err
 }

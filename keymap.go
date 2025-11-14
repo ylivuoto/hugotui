@@ -68,6 +68,7 @@ var Keys = KeyMap{
 		key.WithKeys("n"),
 		key.WithHelp("n", "new item"),
 	),
+	// TODO: Add delete keybinding
 	Open: key.NewBinding(
 		key.WithKeys("o"),
 		key.WithHelp("o", "open item"),

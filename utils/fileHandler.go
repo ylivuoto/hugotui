@@ -31,9 +31,11 @@ func OpenFileInEditor(filePath string) error {
 	cmd.Stderr = os.Stderr
 
 	// m.status = fmt.Sprintf("Opening %s...", filePath)
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("Failed: %v", err)
-	}
+	go func() {
+		if err := cmd.Run(); err != nil {
+			fmt.Printf("Failed: %v", err)
+		}
+	}()
 	// else {
 	// 	m.status = fmt.Sprintf("Closed editor for %s", filePath)
 	// }

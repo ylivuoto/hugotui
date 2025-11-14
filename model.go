@@ -226,7 +226,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
-	// FIX: freezing after create article form exit
 	case key.Matches(msg, m.keys.Edit):
 		m.form = newModifyForm()
 		m.form.Init()

@@ -54,6 +54,8 @@ func (m *model) handleCreateArticle() string {
 
 		commands.CreateArticle(heading, tags)
 		m.refreshList()
+		m.focus = 0
+		m.form = newCreateForm([]string{""})
 		return m.showView("default")
 	}
 
