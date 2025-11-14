@@ -14,12 +14,13 @@ type KeyMap struct {
 	Right key.Binding
 
 	// Actions
-	Edit    key.Binding
-	New     key.Binding
-	Open    key.Binding
-	Tab     key.Binding
-	Preview key.Binding
-	Push    key.Binding
+	Edit        key.Binding
+	New         key.Binding
+	Open        key.Binding
+	Tab         key.Binding
+	Preview     key.Binding
+	StopPreview key.Binding
+	Push        key.Binding
 
 	// Common
 	Help key.Binding
@@ -36,9 +37,9 @@ func (k KeyMap) ShortHelp() []key.Binding {
 // key.Map interface.
 func (k KeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Up, k.Down, k.Left, k.Right},                   // first column
-		{k.Edit, k.New, k.Open, k.Tab, k.Preview, k.Push}, // second column
-		{k.Help, k.Quit},                                  // third column
+		{k.Up, k.Down, k.Left, k.Right},                                  // first column
+		{k.Edit, k.New, k.Open, k.Tab, k.Preview, k.StopPreview, k.Push}, // second column
+		{k.Help, k.Quit}, // third column
 	}
 }
 
@@ -82,6 +83,10 @@ var Keys = KeyMap{
 	Push: key.NewBinding(
 		key.WithKeys("P"),
 		key.WithHelp("P", "push changes"),
+	),
+	StopPreview: key.NewBinding(
+		key.WithKeys("s"),
+		key.WithHelp("s", "stop preview"),
 	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),

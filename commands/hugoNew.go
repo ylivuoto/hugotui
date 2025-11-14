@@ -3,6 +3,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path"
 
@@ -10,6 +11,8 @@ import (
 
 	"github.com/gosimple/slug"
 )
+
+var hugoProcess *os.Process
 
 // CreateArticle implements 'hugo new content'
 func CreateArticle(title string, tags []string) ([]byte, error) {
@@ -40,15 +43,22 @@ func Publish() ([]byte, []byte) {
 }
 
 func Preview() {
-	// FIX: process won't stop on exit, kill
-	go func() {
-		out, error := Execute("hugo", "server")
-		if error != nil {
-			fmt.Println("Error:", error)
-		}
-		fmt.Println("Output:", string(out))
-	}()
+	cmd := exec.Command("hugo", "server")
+	err := cmd.Start()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	hugoProcess = cmd.Process
 	Execute("xdg-open", "http://localhost:1313")
+}
+
+// StopPreview calls stops existing hugo server process
+func StopPreview() {
+	if hugoProcess != nil {
+		hugoProcess.Kill() // or hugoProcess.Signal(os.Interrupt)
+		hugoProcess = nil
+	}
 }
 
 func Execute(command string, args ...string) ([]byte, error) {

@@ -239,7 +239,12 @@ func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case key.Matches(msg, m.keys.Quit):
 		return m, tea.Quit
 	case key.Matches(msg, m.keys.Preview):
+		// TODO: refactor to own functions
+		m.sub <- "Starting Hugo preview server..."
 		commands.Preview()
+	case key.Matches(msg, m.keys.StopPreview):
+		commands.StopPreview()
+		m.sub <- "Hugo preview server stopped."
 	case key.Matches(msg, m.keys.Push):
 		go transferFiles(m.sub)
 	case key.Matches(msg, m.keys.Tab):

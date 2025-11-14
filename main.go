@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"hugotui/commands"
 	"hugotui/utils"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,4 +22,6 @@ func main() {
 		fmt.Println("Bummer, there's been an error:", err)
 		os.Exit(1)
 	}
+	// NOTE: this might not be called on exit in some cases
+	commands.StopPreview()
 }
