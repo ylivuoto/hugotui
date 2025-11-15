@@ -25,12 +25,6 @@ func (m model) appBoundaryView(text string) string {
 }
 
 func (m *model) View() string {
-	if m.focus == 1 {
-		m.viewport.Style = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("62"))
-	}
-
 	if m.focus == 2 {
 		return m.handleEditArticle()
 	}
@@ -110,10 +104,18 @@ func (m *model) showView(view string) string {
 		MarginRight(1).
 		Border(lipgloss.RoundedBorder())
 
+	m.viewport.Style = lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder())
+
 	if m.focus == 0 {
-		listBoxStyle = listBoxStyle.BorderForeground(lipgloss.Color("62")) // green-ish
+		listBoxStyle = listBoxStyle.BorderForeground(lipgloss.Color("62"))
 	}
 
+	if m.focus == 1 {
+		m.viewport.Style = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("62"))
+	}
 	commadLog := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("240")).
