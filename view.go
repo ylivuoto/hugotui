@@ -99,6 +99,13 @@ func (m *model) logMessage(msg string) {
 }
 
 func (m *model) showView(view string) string {
+	// dialog := lipgloss.Place(width, 9,
+	// 	lipgloss.Center, lipgloss.Center,
+	// 	dialogBoxStyle.Render(ui),
+	// 	lipgloss.WithWhitespaceChars("猫咪"),
+	// 	lipgloss.WithWhitespaceForeground(subtle),
+	// )
+
 	// TODO: refactor styles
 	listBoxStyle := lipgloss.NewStyle().
 		MarginRight(1).
@@ -119,9 +126,7 @@ func (m *model) showView(view string) string {
 	commadLog := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("240")).
-		Padding(1, 1).
-		Width(m.width - 4).
-		Height(5).
+		Padding(1).
 		Render(m.cmdLog.View())
 
 	v := strings.TrimSuffix(m.form.View(), "\n\n")
@@ -139,6 +144,12 @@ func (m *model) showView(view string) string {
 		return docStyle.Render(header + "\n" + form)
 
 	default:
-		return docStyle.Render(lipgloss.JoinVertical(0, row, commadLog, helpView))
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, docStyle.Render(
+			lipgloss.JoinVertical(0,
+				row,
+				commadLog,
+				helpView,
+			),
+		))
 	}
 }

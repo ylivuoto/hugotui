@@ -74,7 +74,7 @@ func fetchItems() []list.Item {
 
 func setupList(items []list.Item, width int, heigth int) list.Model {
 	l := list.New(items, list.NewDefaultDelegate(), width, heigth)
-	l.Title = "My Awesome Posts"
+	l.Title = "All Posts"
 	l.SetShowHelp(false)
 	return l
 }
@@ -86,11 +86,10 @@ func mainModel() (*model, error) {
 	items := fetchItems()
 	l := setupList(items, 10, 20)
 
-	const width = 77 // Configure viewport for markdown rendering for Glamour
+	const width = 90 // Configure viewport for markdown rendering for Glamour
 	vp := viewport.New(width, 20)
 	vp.Style = lipgloss.NewStyle().
-		BorderStyle(lipgloss.RoundedBorder()).
-		PaddingRight(2)
+		BorderStyle(lipgloss.RoundedBorder())
 
 	const glamourGutter = 2
 	glamourRenderWidth := width - vp.Style.GetHorizontalFrameSize() - glamourGutter
@@ -178,16 +177,17 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// cmds = append(cmds, cmd)
 		return m, tea.Batch(cmds...)
 
+	// Helps to render properly on window resize
 	case tea.WindowSizeMsg:
-		// Needed for rendering list properly, glamour should work without it
+		// TODO: Also height could be relationally sized
 		h, v := docStyle.GetFrameSize()
 		m.width = msg.Width
 		m.height = msg.Height
-		m.list.SetSize(msg.Width-h, msg.Height-v-11)
-		// TODO: fix viewport width on resize, now hardcoded 77 and 60
-		// Also height could be relationally sized
+		listContentWidth := min(int(float64(msg.Width)*0.40), 50)
+		viewportContentWidth := min(msg.Width-h-listContentWidth, 90)
+		m.list.SetSize(listContentWidth, msg.Height-v-11)
 		m.viewport.Height = msg.Height - v - 9
-		m.viewport.Width = msg.Width - h - 60
+		m.viewport.Width = viewportContentWidth - h
 		verticalMarginHeight := m.viewport.Height
 		m.help.Width = msg.Width
 		if !m.ready {
@@ -201,7 +201,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cmdLog.SetContent(fmt.Sprintf("Test %s", m.content))
 			m.ready = true
 		} else {
-			m.cmdLog.Width = msg.Width
+			m.cmdLog.Width = min(msg.Width, listContentWidth+viewportContentWidth-2*h)
 			m.cmdLog.Height = msg.Height - verticalMarginHeight - 5
 		}
 
