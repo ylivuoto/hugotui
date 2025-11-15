@@ -52,7 +52,9 @@ func Preview() {
 		return
 	}
 	hugoProcess = cmd.Process
-	Execute("xdg-open", "http://localhost:1313")
+	go func() {
+		Execute("xdg-open", "http://localhost:1313")
+	}()
 }
 
 // StopPreview calls stops existing hugo server process
