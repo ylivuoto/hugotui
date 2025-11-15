@@ -23,8 +23,9 @@ type KeyMap struct {
 	Push        key.Binding
 
 	// Common
-	Help key.Binding
-	Quit key.Binding
+	Help     key.Binding
+	Quit     key.Binding
+	WordWrap key.Binding
 }
 
 // ShortHelp returns keybindings to be shown in the mini help view. It's part
@@ -39,7 +40,7 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down, k.Left, k.Right},                                  // first column
 		{k.Edit, k.New, k.Open, k.Tab, k.Preview, k.StopPreview, k.Push}, // second column
-		{k.Help, k.Quit}, // third column
+		{k.Help, k.Quit, k.WordWrap},                                     // third column
 	}
 }
 
@@ -96,5 +97,8 @@ var Keys = KeyMap{
 	Quit: key.NewBinding(
 		key.WithKeys("q", "esc", "ctrl+c"),
 		key.WithHelp("q", "quit"),
+	),
+	WordWrap: key.NewBinding(key.WithKeys("w"),
+		key.WithHelp("w", "toggle word wrap"),
 	),
 }

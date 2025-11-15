@@ -91,31 +91,6 @@ func mainModel() (*model, error) {
 	vp.Style = lipgloss.NewStyle().
 		BorderStyle(lipgloss.RoundedBorder())
 
-	const glamourGutter = 2
-	glamourRenderWidth := width - vp.Style.GetHorizontalFrameSize() - glamourGutter
-
-	renderer, err := glamour.NewTermRenderer(
-		glamour.WithAutoStyle(),
-		glamour.WithWordWrap(glamourRenderWidth),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	content := ""
-	selectedItem := l.SelectedItem()
-	if selectedItem != nil {
-		content = selectedItem.(item).content
-	}
-
-	str, err := renderer.Render(content)
-	if err != nil {
-		fmt.Println("Error rendering markdown:", err)
-		return nil, err
-	}
-
-	vp.SetContent(str)
-
 	form := newCreateForm([]string{"my", "awesome", "tags"})
 
 	// Help
@@ -133,7 +108,6 @@ func mainModel() (*model, error) {
 	return &model{
 		list:     l,
 		viewport: vp,
-		renderer: renderer,
 		form:     form,
 		sub:      sub,
 		keys:     Keys,
@@ -142,10 +116,43 @@ func mainModel() (*model, error) {
 }
 
 func (m *model) Init() tea.Cmd {
+	const glamourGutter = 2
+	// glamourRenderWidth := width - vp.Style.GetHorizontalFrameSize() - glamourGutter
+
+	renderer, _ := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+		glamour.WithWordWrap(m.viewport.Width-m.viewport.Style.GetHorizontalFrameSize()-glamourGutter),
+	)
+	m.renderer = renderer
+	content := ""
+	selectedItem := m.list.SelectedItem()
+	if selectedItem != nil {
+		content = selectedItem.(item).content
+	}
+
+	str, _ := renderer.Render(content)
+	m.viewport.SetContent(str)
 	return tea.Batch(
 		m.form.Init(),
 		waitForLine(m.sub),
 	)
+}
+
+func (m *model) updateRenderer() {
+	const glamourGutter = 2
+	renderer, _ := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+		glamour.WithWordWrap(m.viewport.Width-m.viewport.Style.GetHorizontalFrameSize()-glamourGutter),
+	)
+	m.renderer = renderer
+	content := ""
+	selectedItem := m.list.SelectedItem()
+	if selectedItem != nil {
+		content = selectedItem.(item).content
+	}
+
+	str, _ := renderer.Render(content)
+	m.viewport.SetContent(str)
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -188,6 +195,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetSize(listContentWidth, msg.Height-v-11)
 		m.viewport.Height = msg.Height - v - 9
 		m.viewport.Width = viewportContentWidth - h
+		m.viewport.Style.Width(viewportContentWidth - h)
 		verticalMarginHeight := m.viewport.Height
 		m.help.Width = msg.Width
 		if !m.ready {
@@ -237,6 +245,8 @@ func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
 		utils.OpenFileInEditor(m.list.SelectedItem().(item).path)
 	case key.Matches(msg, m.keys.Quit):
 		return m, tea.Quit
+	case key.Matches(msg, m.keys.WordWrap):
+		go m.updateRenderer()
 	case key.Matches(msg, m.keys.Preview):
 		// TODO: refactor to own functions
 		m.sub <- "Starting Hugo preview server..."
