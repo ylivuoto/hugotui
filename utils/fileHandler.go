@@ -44,37 +44,56 @@ func OpenFileInEditor(filePath string) error {
 }
 
 func ModifyFileTitle(filepath string, title string) error {
-	fullPath := filepath
-	data, err := os.ReadFile(fullPath)
-	if err != nil {
-		return err
-	}
-
-	lines := strings.Split(string(data), "\n")
-	for i, line := range lines {
-		if strings.HasPrefix(line, "title = ") {
-			lines[i] = fmt.Sprintf("title =  \"%s\"", title)
-			break
-		}
-	}
-	return os.WriteFile(fullPath, []byte(strings.Join(lines, "\n")), 0o644)
+	// TODO: refactor to reduce code duplication
+	lines := getPostLines(filepath)
+	modifyLines(&lines, title, "title = ", "title =  \"%s\"", "")
+	return os.WriteFile(filepath, []byte(strings.Join(lines, "\n")), 0o644)
 }
 
 func ModifyFileTags(filepath string, tags []string) error {
-	fullPath := filepath
-	data, err := os.ReadFile(fullPath)
-	if err != nil {
-		return err
+	lines := getPostLines(filepath)
+	modifyLines(&lines, tags, "tags = ", "tags = [\"%s\"]", "\", \"")
+	return os.WriteFile(filepath, []byte(strings.Join(lines, "\n")), 0o644)
+}
+
+func ModifyExpiryDate(filepath string, date string) error {
+	lines := getPostLines(filepath)
+	for _, line := range lines {
+		if strings.HasPrefix(strings.TrimSpace(line), "expiryDate = ") {
+			return fmt.Errorf("expiryDate already set")
+		}
 	}
 
-	lines := strings.Split(string(data), "\n")
-	for i, line := range lines {
-		if strings.HasPrefix(line, "tags = ") {
-			lines[i] = fmt.Sprintf("tags = [\"%s\"]", strings.Join(tags, "\", \""))
+	modifyLines(&lines, date, "expiryDate = ", "expiryDate = \"%s\"", "")
+	return os.WriteFile(filepath, []byte(strings.Join(lines, "\n")), 0o644)
+}
+
+func modifyLines(lines *[]string, value any, prefix, format, separator string) {
+	var content string
+	switch val := value.(type) {
+	case []string:
+		content = strings.Join(val, separator)
+	case string:
+		content = val
+	}
+
+	for i, line := range *lines {
+		if strings.HasPrefix(line, prefix) {
+			(*lines)[i] = fmt.Sprintf(format, content)
 			break
 		}
 	}
-	return os.WriteFile(fullPath, []byte(strings.Join(lines, "\n")), 0o644)
+}
+
+func getPostLines(filepath string) []string {
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		return []string{}
+	}
+
+	lines := strings.Split(string(data), "\n")
+
+	return lines
 }
 
 // ModifyFilePath renames the file based on the new title and moves it to the posts directory.
