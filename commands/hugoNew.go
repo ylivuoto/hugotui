@@ -21,6 +21,9 @@ func CreateArticle(title string, tags []string) ([]byte, error) {
 	filepath := path.Join("content", "posts", filename)
 	out, err := Execute("hugo", "new", "content", filepath)
 
+	if len(tags) > 0 {
+		utils.ModifyFileTags(filepath, tags)
+	}
 	// Run editor in goroutine for parallelism
 	utils.OpenFileInEditor(filepath)
 	return out, err

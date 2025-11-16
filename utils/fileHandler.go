@@ -60,6 +60,23 @@ func ModifyFileTitle(filepath string, title string) error {
 	return os.WriteFile(fullPath, []byte(strings.Join(lines, "\n")), 0o644)
 }
 
+func ModifyFileTags(filepath string, tags []string) error {
+	fullPath := filepath
+	data, err := os.ReadFile(fullPath)
+	if err != nil {
+		return err
+	}
+
+	lines := strings.Split(string(data), "\n")
+	for i, line := range lines {
+		if strings.HasPrefix(line, "tags = ") {
+			lines[i] = fmt.Sprintf("tags = [\"%s\"]", strings.Join(tags, "\", \""))
+			break
+		}
+	}
+	return os.WriteFile(fullPath, []byte(strings.Join(lines, "\n")), 0o644)
+}
+
 // ModifyFilePath renames the file based on the new title and moves it to the posts directory.
 func ModifyFilePath(filepath string, title string) error {
 	filename := slug.Make(title) + ".md"

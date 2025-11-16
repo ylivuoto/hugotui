@@ -21,7 +21,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var docStyle = lipgloss.NewStyle().Margin(0, 1)
+var (
+	docStyle  = lipgloss.NewStyle().Margin(0, 1)
+	knownTags = []string{"tech", "life", "travel", "hugo", "golang"}
+)
 
 type (
 	lineMsg string
@@ -69,6 +72,17 @@ func fetchItems() []list.Item {
 	for i, p := range posts {
 		items[i] = item{title: p.Title, date: p.Date, tags: p.Tags, content: p.Content, path: p.Path}
 	}
+	allTags := make(map[string]struct{})
+	for _, p := range posts {
+		for _, tag := range p.Tags {
+			allTags[tag] = struct{}{}
+		}
+	}
+	var tags []string
+	for tag := range allTags {
+		tags = append(tags, tag)
+	}
+	knownTags = tags
 	return items
 }
 
@@ -274,7 +288,7 @@ func newCreateForm(tags []string) *huh.Form {
 			huh.NewMultiSelect[string]().
 				Key("tags").
 				Title("Select tags").
-				Options(huh.NewOptions(tags...)...),
+				Options(huh.NewOptions(knownTags...)...),
 
 			huh.NewInput().
 				Key("heading").
