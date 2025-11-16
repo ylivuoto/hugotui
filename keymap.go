@@ -15,12 +15,13 @@ type KeyMap struct {
 
 	// Actions
 	Edit        key.Binding
+	Delete      key.Binding
 	New         key.Binding
 	Open        key.Binding
 	Tab         key.Binding
 	Preview     key.Binding
-	StopPreview key.Binding
 	Push        key.Binding
+	StopPreview key.Binding
 
 	// Common
 	Help     key.Binding
@@ -38,9 +39,9 @@ func (k KeyMap) ShortHelp() []key.Binding {
 // key.Map interface.
 func (k KeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Up, k.Down, k.Left, k.Right},                                  // first column
-		{k.Edit, k.New, k.Open, k.Tab, k.Preview, k.StopPreview, k.Push}, // second column
-		{k.Help, k.Quit, k.WordWrap},                                     // third column
+		{k.Up, k.Down, k.Left, k.Right},                                            // first column
+		{k.Edit, k.Delete, k.New, k.Open, k.Tab, k.Preview, k.StopPreview, k.Push}, // second column
+		{k.Help, k.Quit, k.WordWrap},                                               // third column
 	}
 }
 
@@ -69,9 +70,12 @@ var Keys = KeyMap{
 		key.WithKeys("n"),
 		key.WithHelp("n", "new item"),
 	),
-	// TODO: Add delete keybinding
+	Delete: key.NewBinding(
+		key.WithKeys("D"),
+		key.WithHelp("d", "delete item"),
+	),
 	Open: key.NewBinding(
-		key.WithKeys("o"),
+		key.WithKeys("o", "enter"),
 		key.WithHelp("o", "open item"),
 	),
 	Tab: key.NewBinding(

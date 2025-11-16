@@ -64,7 +64,8 @@ func ModifyExpiryDate(filepath string, date string) error {
 		}
 	}
 
-	modifyLines(&lines, date, "expiryDate = ", "expiryDate = \"%s\"", "")
+	expiryDate := fmt.Sprintf("expiryDate = \"%s\"", date)
+	modifyLines(&lines, expiryDate, "expiryDate = ", "expiryDate = \"%s\"", "")
 	return os.WriteFile(filepath, []byte(strings.Join(lines, "\n")), 0o644)
 }
 
@@ -77,11 +78,17 @@ func modifyLines(lines *[]string, value any, prefix, format, separator string) {
 		content = val
 	}
 
+	exists := false
 	for i, line := range *lines {
 		if strings.HasPrefix(line, prefix) {
 			(*lines)[i] = fmt.Sprintf(format, content)
+			exists = true
 			break
 		}
+	}
+
+	if !exists {
+		*lines = append((*lines)[:1], append([]string{content}, (*lines)[1:]...)...)
 	}
 }
 

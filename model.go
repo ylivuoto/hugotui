@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"hugotui/commands"
 	"hugotui/utils"
@@ -236,6 +237,8 @@ func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.form = newModifyForm()
 		m.form.Init()
 		m.focus = 2
+	case key.Matches(msg, m.keys.Delete):
+		m.deletePost()
 	case key.Matches(msg, m.keys.New):
 		m.focus = 3
 		return updateCreate(msg, m)
@@ -262,6 +265,17 @@ func mainViewKeybindings(m *model, msg *tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.help.ShowAll = !m.help.ShowAll
 	}
 	return m, nil
+}
+
+func (m *model) deletePost() {
+	expiryDate := time.Now().Format(time.RFC3339)
+	err := utils.ModifyExpiryDate(m.list.SelectedItem().(item).path, expiryDate)
+	post := m.list.SelectedItem().(item).title
+	if err != nil {
+		m.logMessage(fmt.Sprintf("Error deleting post %s: %s", post, err.Error()))
+	} else {
+		m.logMessage(fmt.Sprintf("Post '%s' marked as expired with date %s", post, expiryDate))
+	}
 }
 
 func (m *model) renderSelected() {
